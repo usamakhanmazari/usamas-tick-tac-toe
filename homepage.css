@@ -1,0 +1,12 @@
+button {
+  display: block;      /* Necessary for margin auto to work */
+  margin: 0 auto;      /* Centers the element horizontally */
+  width: max-content;  /* Prevents the block from stretching full width */
+  
+  /* Optional: Button styling */
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
