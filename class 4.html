@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arcade Game Center</title>
+  <style>
+    /* --- SHARED CSS STYLING --- */
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #f0f2f5;
+      font-family: Arial, sans-serif;
+    }
+
+    /* 🧭 FIXED HEADER STYLING */
+    header {
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100; /* Stays fixed above all games */
+    }
+
+    header ul {
+      list-style: none;
+      margin: 0;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    header ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      text-transform: capitalize;
+      font-size: 16px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    header ul li a:hover {
+      color: #007bff;
+    }
+
+    /* 📺 SCREEN TOGGLE ENGINE */
+    .game-screen {
+      display: none; /* Hidden by default */
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .game-screen.active {
+      display: flex; /* Displays only the clicked game screen */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- GAME 1: RUNAWAY BUTTON SPECIFIC CSS --- */
+    #runaway-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #score-board {
+      position: absolute;
+      top: 80px; 
+      left: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      user-select: none; 
+    }
+
+    #runaway-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: left 0.45s ease-out, top 0.45s ease-out; 
+    }
+
+    /* --- GAME 2: TIC TAC TOE SPECIFIC CSS --- */
+    #tictactoe-screen h1 {
+      color: #333;
+      margin-bottom: 10px;
+      margin-top: 60px; /* Accounts for header navbar space */
+    }
+
+    .status {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 5px;
+      background-color: #333;
+      padding: 5px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .cell {
+      background-color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+
+    .cell:hover {
+      background-color: #e3f2fd;
+    }
+
+    .cell.x { color: #ef5350; }
+    .cell.o { color: #42a5f5; }
+
+    .reset-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.2s;
+    }
+
+    .reset-btn:hover {
+      background-color: #43a047;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🧭 CENTRAL NAVIGATION BAR -->
+  <header>
+      <ul>
+          <li><a id="link-home">home</a></li>
+          <li><a id="link-ttt">tic tac toe</a></li>
+          <li><a href="#">mera ghar</a></li>
+          <li><a href="#">about</a></li>
+          <li><a href="#">contact</a></li>
+      </ul>
+  </header>
+
+  <!-- 🕹️ SCREEN 1: RUNAWAY BUTTON GAME (Home) -->
+  <div id="runaway-screen" class="game-screen active">
+    <div id="score-board">Score: <span id="score-val">0</span></div>
+    <button id="runaway-btn">Click Me!</button>
+  </div>
+
+  <!-- 🕹️ SCREEN 2: TIC TAC TOE GAME -->
+  <div id="tictactoe-screen" class="game-screen">
+    <h1>Tic Tac Toe</h1>
+    <div class="status" id="statusText">Player X's turn</div>
+
+    <div class="board" id="board">
+        <button class="cell" data-index="0"></button>
+        <button class="cell" data-index="1"></button>
+        <button class="cell" data-index="2"></button>
+        <button class="cell" data-index="3"></button>
+        <button class="cell" data-index="4"></button>
+        <button class="cell" data-index="5"></button>
+        <button class="cell" data-index="6"></button>
+        <button class="cell" data-index="7"></button>
+        <button class="cell" data-index="8"></button>
+    </div>
+    <button class="reset-btn" id="resetBtn">Restart Game</button>
+  </div>
+
+  <!-- --- SYSTEM JAVASCRIPT LOGIC --- -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      
+      /* --- SCREEN ROUTER MECHANISM --- */
+      const linkHome = document.getElementById("link-home");
+      const linkTtt = document.getElementById("link-ttt");
+      const runawayScreen = document.getElementById("runaway-screen");
+      const tictactoeScreen = document.getElementById("tictactoe-screen");
+
+      linkHome.addEventListener("click", () => {
+        tictactoeScreen.classList.remove("active");
+        runawayScreen.classList.add("active");
+      });
+
+      linkTtt.addEventListener("click", () => {
+        runawayScreen.classList.remove("active");
+        tictactoeScreen.classList.add("active");
+      });
+
+      /* --- GAME 1 ENGINE: RUNAWAY BUTTON --- */
+      const btn = document.getElementById("runaway-btn");
+      const scoreVal = document.getElementById("score-val");
+      const header = document.querySelector("header");
+      let score = 0;
+      let isMoving = false;
+
+      function moveButton() {
+        if (isMoving) return;
+        isMoving = true;
+
+        setTimeout(() => {
+          const maxX = window.innerWidth - btn.offsetWidth;
+          const headerHeight = header.offsetHeight;
+          const maxY = window.innerHeight - btn.offsetHeight;
+
+          const randomX = Math.floor(Math.random() * Math.max(1, maxX));
+          const randomY = Math.floor(Math.random() * (maxY - headerHeight)) + headerHeight;
+
+          btn.style.transform = "none";
+          btn.style.margin = "0";
+          btn.style.left = randomX + "px";
+          btn.style.top = randomY + "px";
+          
+          isMoving = false;
+        }, 250);
+      }
+
+      btn.addEventListener("mouseover", moveButton);
+      btn.addEventListener("pointerenter", moveButton); 
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        score++;
+        scoreVal.innerText = score;
+        alert("🎉 You caught it!");
+        moveButton(); 
+      });
+
+      /* --- GAME 2 ENGINE: TIC TAC TOE --- */
+      const board = document.getElementById('board');
+      const cells = document.querySelectorAll('.cell');
+      const statusText = document.getElementById('statusText');
+      const resetBtn = document.getElementById('resetBtn');
+
+      let currentPlayer = 'X';
+      let gameState = ["", "", "", "", "", "", "", "", ""];
+      let isGameActive = true;
+
+      const winningConditions = [, [3, 4, 5], [6, 7, 8],
+, [1, 4, 7], [2, 5, 8],
+, [2, 4, 6]
+      ];
+
+      function handleCellClick(e) {
+          const clickedCell = e.target;
+          const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+          if (gameState[clickedCellIndex] !== "" || !isGameActive) {
+              return;
+          }
+
+          updateCell(clickedCell, clickedCellIndex);
+          checkResult();
+      }
+
+      function updateCell(cell, index) {
+          gameState[index] = currentPlayer;
+          cell.textContent = currentPlayer;
+          cell.classList.add(currentPlayer.toLowerCase());
+      }
+
+      function changePlayer() {
+          currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+          statusText.textContent = `Player ${currentPlayer}'s turn`;
+      }
+
+      function checkResult() {
+          let roundWon = false;
+
+          for (let i = 0; i < winningConditions.length; i++) {
+              const [a, b, c] = winningConditions[i];
+              if (gameState[a] === "" || gameState[b] === "" || gameState[c] === "") {
+                  continue;
+              }
+              if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+                  roundWon = true;
+                  break;
+              }
+          }
+
+          if (roundWon) {
+              statusText.textContent = `Player ${currentPlayer} Wins! 🎉`;
+              isGameActive = false;
+              return;
+          }
+
+          if (!gameState.includes("")) {
+              statusText.textContent = "It's a Draw! 🤝";
+              isGameActive = false;
+              return;
+          }
+
+          changePlayer();
+      }
+
+      function restartGame() {
+          currentPlayer = 'X';
+          gameState = ["", "", "", "", "", "", "", "", ""];
+          isGameActive = true;
+          statusText.textContent = "Player X's turn";
+          cells.forEach(cell => {
+              cell.textContent = "";
+              cell.classList.remove('x', 'o');
+          });
+      }
+
+      cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+      resetBtn.addEventListener('click', restartGame);
+
+    });
+  </script>
+</body>
+</html>
